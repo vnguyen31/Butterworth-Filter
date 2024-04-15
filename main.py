@@ -10,14 +10,13 @@ def DTFT(wav_file):
     sampling_rate, samples = wavfile.read(wav_file)
     print("Sampling frequency:", sampling_rate)
     print("Number of Samples:", len(samples))
-    print("samples = ", samples)
 
     #Calculate the Discrete time Fourier Transform of input signal
     inputfft = np.fft.fft(samples)
     #Magnitude of input signal:
     Xomega = np.abs(inputfft)
     #frequency axis for plotting:
-    faxis = np.fft.fftfreq(len(samples), d=1/sampling_rate)
+    faxis = np.fft.fftfreq(len(samples), d = 1 / sampling_rate)
     return faxis, Xomega
 
 #Function to plot signal
@@ -32,12 +31,48 @@ def plotfrequency(horizontal_axis, vertical_axis, plot_label):
     plt.show()
     plt.autoscale()
 
-######################################### [ MAIN ] ######################################################
+#Function to get the output function Y(omega) and output in .wav file:
+def OutputWAV(input_w, system_w):
+    #print the dimensions of the input and data format
+    print("Shape of input_n:", input_w.shape)
+    print("Shape of system_n:", system_w.shape)
+    print("Data type of input_n:", input_w.dtype)
+    print("Data type of system_n:", system_w.dtype)
 
+    #compute the convolution of input and system in discrete time:
+    Output_omega = input_w * system_w
+    #print the samples and length of output signal:
+    print("Length of output:", len(Output_omega))
+
+    #plot the frequency response of output signal:
+    sampling_rate = 44100
+    output_faxis = np.fft.fftfreq(len(Output_omega), d = 1 / sampling_rate)
+    Output_omega = np.real(Output_omega)
+    Output_omegareal = np.absolute(Output_omega)
+
+    #plotting its MAGNITUDE in frequency domain
+    plotfrequency(output_faxis, Output_omegareal, 'Output Magnitude')
+
+    #calculate the inverse DTFT to get DT samples of output:
+    y_n = np.fft.ifft(Output_omega)
+    y_n = np.real(y_n)
+    print("samples of output: ", y_n)
+
+    #output the output of system as .wav file
+    with wave.open('output.wav', 'w') as wf:
+        wf.setnchannels(1)  # mono audio
+        wf.setsampwidth(2)  # 2 bytes (16 bit)
+        wf.setframerate(44100)
+        wf.writeframes(y_n.astype(np.float64).tobytes())
+
+
+
+######################################### [ MAIN ] ######################################################
 
 #calculate the DTFT of .wav file and plotting it:
 input_faxis, input_Xomega = DTFT(r"C:\Users\ducvi\PycharmProjects\S&S 1.94\.venv\thuong em.wav")
 plotfrequency(input_faxis, input_Xomega, ".wav file")
+
 
 
 #20th Order Butterworth Filter (300Hz) constants:
@@ -57,6 +92,7 @@ H1_omega = np.sqrt(H1_omega_squared)
 plotfrequency(H1_freqaxis_nonzero, H1_omega, "Frequency response of filter 1")
 
 
+
 #21th Order Butterworth Filter (2000Hz) constants:
 H2_fo = 44100                       #Resonant frequency
 H2_fc = 2000                         #Cur off frequency
@@ -74,25 +110,25 @@ H2_omega_high = 1 - H2_omega_low
 # Graph the filter
 plotfrequency(H2_freqaxis_nonzero, H2_omega_high, "Frequency response of filter 2")
 
+
+
 #plotting the frequency response of two filters put in cascade:
 plotfrequency(H2_freqaxis_nonzero, H1_omega + H2_omega_high, "Frequency of combined filters")
-
 #Output function is convolution of System and input
-h1_n = np.fft.ifft(H1_omega)
-h2_n = np.fft.ifft(H2_omega_high)
+H_omega = H1_omega + H2_omega_high
+#getting input samples
 xn_sampling, x_n = wavfile.read(r"C:\Users\ducvi\PycharmProjects\S&S 1.94\.venv\thuong em.wav")
+#convert stereo to mono audio
+x_n = np.mean(x_n, axis = 1)
+Input_omega = np.fft.fft(x_n)
+#convert system to same data format (int16)
+H_omega = H_omega.astype(np.float64)
+Input_omega = Input_omega.astype(np.float64)
+#truncating so the num of samples match up
+Input_omega = Input_omega[:len(H_omega)]
 
-convolution_result = np.real(h1_n + h2_n) / 2
-convolution_resultflat = convolution_result.flatten()
-y_n = np.convolve(x_n, convolution_resultflat, mode = 'full')
-print("convolution data:", y_n)
-print("data length:", len(y_n))
+#output the .wav file
+OutputWAV(Input_omega, H_omega)
 
-#output it into a .wav file
-with wave.open('output.wav', 'w') as wf:
-    output = np.int16(y_n * 32767)
-    wf.setnchannels(1)  # mono audio
-    wf.setsampwidth(2)  # 2 bytes (16 bit)
-    wf.setframerate(44100)
-    wf.writeframes(output.tobytes())
+
 
