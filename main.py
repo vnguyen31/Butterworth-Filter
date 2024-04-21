@@ -56,6 +56,8 @@ def OutputWAV(input_w, system_w):
     #calculate the inverse DTFT to get DT samples of output:
     y_n = np.fft.ifft(Output_omega)
     y_n = np.real(y_n)
+    yn_max = np.max(np.abs(y_n))
+    y_n = y_n / yn_max
     print("samples of output: ", y_n)
 
     #output the output of system as .wav file
@@ -63,7 +65,7 @@ def OutputWAV(input_w, system_w):
         wf.setnchannels(1)  # mono audio
         wf.setsampwidth(2)  # 2 bytes (16 bit)
         wf.setframerate(44100)
-        wf.writeframes(y_n.astype(np.float64).tobytes())
+        wf.writeframes((y_n * 32767).astype(np.int16).tobytes())
 
 
 
@@ -95,7 +97,7 @@ plotfrequency(H1_freqaxis_nonzero, H1_omega, "Frequency response of filter 1")
 
 #21th Order Butterworth Filter (2000Hz) constants:
 H2_fo = 44100                       #Resonant frequency
-H2_fc = 2000                         #Cur off frequency
+H2_fc = 2000                        #Cur off frequency
 H2_order = 21                       #order filter
 #nyquist frequency and cut off angular frequency:
 nyquist_f = 0.5 * H2_fo             #to avoid aliasing
