@@ -72,7 +72,7 @@ def OutputWAV(input_w, system_w):
 ######################################### [ MAIN ] ######################################################
 
 #calculate the DTFT of .wav file and plotting it:
-input_faxis, input_Xomega = DTFT(r"C:\Users\ducvi\PycharmProjects\S&S 1.94\.venv\thuong em.wav")
+input_faxis, input_Xomega = DTFT(r"C:\Users\ducvi\PycharmProjects\S&S FinalProj\vo-cung-2-vi-anh-thuong-em.wav")
 plotfrequency(input_faxis, input_Xomega, ".wav file")
 
 
@@ -119,7 +119,7 @@ plotfrequency(H2_freqaxis_nonzero, H1_omega + H2_omega_high, "Frequency of combi
 #Output function is convolution of System and input
 H_omega = H1_omega + H2_omega_high
 #getting input samples
-xn_sampling, x_n = wavfile.read(r"C:\Users\ducvi\PycharmProjects\S&S 1.94\.venv\thuong em.wav")
+xn_sampling, x_n = wavfile.read(r"C:\Users\ducvi\PycharmProjects\S&S FinalProj\vo-cung-2-vi-anh-thuong-em.wav")
 #convert stereo to mono audio
 x_n = np.mean(x_n, axis = 1)
 Input_omega = np.fft.fft(x_n)
@@ -131,6 +131,5 @@ Input_omega = Input_omega[:len(H_omega)]
 
 #output the .wav file
 OutputWAV(Input_omega, H_omega)
-
 
 
